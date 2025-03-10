@@ -20,13 +20,13 @@ async fn setup_environment() {
     let random_port: u16 = rng.gen_range(20000..=60000); 
 
     let env_vars = [
-        ("UUID", "66e5c8dd-3176-458e-8fb0-1ed91d2f9602"),
-        ("NEZHA_SERVER", "nz.abc.com"),
-        ("NEZHA_PORT", "5555"),
+        ("UUID", "a3857734-2095-4ba9-bd9a-ef7c043aa517"),
+        ("NEZHA_SERVER", ""),
+        ("NEZHA_PORT", ""),
         ("NEZHA_KEY", ""),
         ("ARGO_DOMAIN", ""),  // argo固定隧道也可在scrects中添加环境变量
-        ("ARGO_AUTH", ""),    // argo密钥，留空将使用临时隧道
-        ("CFIP", "www.visa.com.tw"),
+        ("ARGO_AUTH", "eyJhIjoiYmJmYTBlNWMyZmU5NWIxMzRhYTkyNTJjNzQzMDY5YTgiLCJ0IjoiMzgyOWFhMWEtZWM5Mi00YTBhLWFiYjctMjNjZmFlN2RhNGNhIiwicyI6Ik5ETmpPREZsWWpRdE1tUXpOQzAwTWpZd0xUa3hPRGN0TVdNNU5HRTFOelprTXpVeiJ9"),    // argo密钥，留空将使用临时隧道
+        ("CFIP", "ip.sb"),
         ("CFPORT", "443"),
         ("NAME", "shuttle"),
         ("FILE_PATH", "./tmp"),
@@ -120,9 +120,9 @@ ingress:
                     "decryption": "none",
                     "fallbacks": [
                         { "dest": 3001 },
-                        { "path": "/vless-argo", "dest": 3002 },
-                        { "path": "/vmess-argo", "dest": 3003 },
-                        { "path": "/trojan-argo", "dest": 3004 }
+                        { "path": "/vless", "dest": 3002 },
+                        { "path": "/vmess", "dest": 3003 },
+                        { "path": "/trojan", "dest": 3004 }
                     ]
                 },
                 "streamSettings": {
@@ -154,11 +154,11 @@ ingress:
                     "network": "ws",
                     "security": "none",
                     "wsSettings": {
-                        "path": "/vless-argo"
+                        "path": "/vless"
                     }
                 },
                 "sniffing": {
-                    "enabled": true,
+                    "enabled": false,
                     "destOverride": ["http", "tls", "quic"],
                     "metadataOnly": false
                 }
@@ -173,11 +173,11 @@ ingress:
                 "streamSettings": {
                     "network": "ws",
                     "wsSettings": {
-                        "path": "/vmess-argo"
+                        "path": "/vmess"
                     }
                 },
                 "sniffing": {
-                    "enabled": true,
+                    "enabled": false,
                     "destOverride": ["http", "tls", "quic"],
                     "metadataOnly": false
                 }
@@ -193,11 +193,11 @@ ingress:
                     "network": "ws",
                     "security": "none",
                     "wsSettings": {
-                        "path": "/trojan-argo"
+                        "path": "/trojan"
                     }
                 },
                 "sniffing": {
-                    "enabled": true,
+                    "enabled": false,
                     "destOverride": ["http", "tls", "quic"],
                     "metadataOnly": false
                 }
@@ -373,7 +373,7 @@ async fn generate_links() {
         "net": "ws",
         "type": "none",
         "host": argodomain,
-        "path": "/vmess-argo?ed=2048",
+        "path": "/vmess?ed=2048",
         "tls": "tls",
         "sni": argodomain,
         "alpn": ""
@@ -382,13 +382,13 @@ async fn generate_links() {
     let mut list_file = File::create(format!("{}/list.txt", file_path))
         .expect("Failed to create list.txt");
 
-    writeln!(list_file, "vless://{}@{}:{}?encryption=none&security=tls&sni={}&type=ws&host={}&path=%2Fvless-argo%3Fed%3D2048#{}-{}",
+    writeln!(list_file, "vless://{}@{}:{}?encryption=none&security=tls&sni={}&type=ws&host={}&path=%2Fvless%3Fed%3D2048#{}-{}",
         uuid, cfip, cfport, argodomain, argodomain, name, isp).unwrap();
     
     writeln!(list_file, "\nvmess://{}", 
         BASE64_STANDARD.encode(serde_json::to_string(&vmess_config).unwrap())).unwrap();
     
-    writeln!(list_file, "\ntrojan://{}@{}:{}?security=tls&sni={}&type=ws&host={}&path=%2Ftrojan-argo%3Fed%3D2048#{}-{}",
+    writeln!(list_file, "\ntrojan://{}@{}:{}?security=tls&sni={}&type=ws&host={}&path=%2Ftrojan%3Fed%3D2048#{}-{}",
         uuid, cfip, cfport, argodomain, argodomain, name, isp).unwrap();
 
     let list_content = fs::read_to_string(format!("{}/list.txt", file_path))
